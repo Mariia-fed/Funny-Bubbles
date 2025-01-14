@@ -138,7 +138,7 @@ class Game:
         # for _ in range(self.lives):
         #     self.screen.blit(heart_sprite, (heart_x, HEART_Y))
         #     heart_x += int(HEART_SIZE * 1.1)
-        heart_image = pygame.image.load('heart.png')
+        heart_image = pygame.image.load('Heart.png')
         if colorkey is not None:
             heart_image = heart_image.convert()
             if colorkey == -1:
