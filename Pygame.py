@@ -16,13 +16,11 @@ WHITE = (255, 255, 255)
 ORANGE = (255, 165, 0)
 BLACK = (0, 0, 0)
 
-'''Изображение на фон, есл нужно просто фон - это убрать'''
-# window = pygame.display.set_mode((WIDTH, HEIGHT))
-#
-# background = pygame.image.load("bubbles2.jpg")
-# background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-# all_sprites = pygame.sprite.Group()
-'''И это'''
+'''Изображение на фон, если нужен фон сплошного цвета - убрать
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+background = pygame.image.load("puziriki.jpg")
+background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+all_sprites = pygame.sprite.Group()'''
 
 HEART_SIZE = 35
 STARTING_HEART_X = int(WIDTH - HEART_SIZE * 3.6)
@@ -65,14 +63,15 @@ class Game:
 
     def launch(self):
         while self.running:
+            # Это изображение на фон
+            #window.blit(background, (0, 0))
+            #all_sprites.draw(window)
+            #pygame.display.update()
+            #
+            self.clock.tick(FPS)
             self.handle_events()
             self.change_game_states()
             self.draw()
-            self.clock.tick(FPS)
-            # Это изображение на фон
-            # window.blit(background, (0, 0))
-            # all_sprites.draw(window)
-            # pygame.display.update()
             self.tick += 1
 
     """Возращает список всех событий, который произошли за последний фрейм
@@ -138,7 +137,7 @@ class Game:
         # for _ in range(self.lives):
         #     self.screen.blit(heart_sprite, (heart_x, HEART_Y))
         #     heart_x += int(HEART_SIZE * 1.1)
-        heart_image = pygame.image.load('heart.png')
+        heart_image = pygame.image.load('HEART1.png')
         if colorkey is not None:
             heart_image = heart_image.convert()
             if colorkey == -1:
