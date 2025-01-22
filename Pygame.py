@@ -1,10 +1,12 @@
+import sys
+
 import pygame
 
 WIDTH = 1024
 HEIGHT = 800
 
 STARTING_LIVES = 3
-FPS = 24
+FPS = 30
 
 LEVEL = 1
 
@@ -47,6 +49,26 @@ class Game:
         self.clock = pygame.time.Clock()
         self.tick = 0
         self.start_new_game()
+        self.bubble = Bubble(self.screen)
+
+    def update_my_screen(self, bubble):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    bubble.movie_right = True
+                if event.key == pygame.K_LEFT:
+                    bubble.movie_left = True
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    bubble.movie_right = False
+                if event.key == pygame.K_LEFT:
+                    bubble.movie_left = False
+
+        bubble.moving()
+
+    def draw_my_screen(self):
+        self.bubble.draw_on_screen()
 
     def set_up_canvas(self):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -62,19 +84,25 @@ class Game:
         self.problems = []
 
     def launch(self):
-        while self.running:
+        while self.running == True:
             # Это изображение на фон
             #window.blit(background, (0, 0))
             #all_sprites.draw(window)
             #pygame.display.update()
             #
-            self.clock.tick(FPS)
             self.handle_events()
+            self.clock.tick(FPS)
             self.change_game_states()
             self.draw()
             self.tick += 1
+            self.update_my_screen(self.bubble)
+            self.draw_my_screen()
 
-    """Возращает список всех событий, который произошли за последний фрейм
+            pygame.display.update()
+        pygame.quit()
+
+
+    """Возращает список всех событий, которые произошли за последний фрейм
     Когда закрываем окно игра останавливается"""
 
     def handle_events(self):
@@ -153,6 +181,35 @@ class Game:
 
     def __del__(self):
         pygame.quit()
+
+
+class Bubble:
+    def __init__(self, screen):
+        self.screen = screen
+        self.pos_x = 400
+        self.pos_y = 700
+        self.radius = 30
+        self.color = (0, 0, 255)
+        self.movie_left = False
+        self.movie_right = False
+
+        self.max_y = 800 - self.radius
+        self.max_x = 1200 - self.radius
+
+    def moving(self):
+        if self.pos_y >= 120:
+            self.pos_y -= 5
+        if self.movie_left == True:
+            self.pos_x -= 5
+            if self.pos_x < self.radius:
+                self.pos_x = self.radius
+        if self.movie_right == True:
+            self.pos_x += 5
+            if self.pos_x > self.max_x:
+                self.pos_x = self.max_x
+
+    def draw_on_screen(self):
+        pygame.draw.circle(self.screen, self.color, (self.pos_x, self.pos_y), self.radius)
 
 
 class Problem:
