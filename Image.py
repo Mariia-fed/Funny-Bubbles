@@ -1,5 +1,6 @@
 import pygame as pg
 import sys
+import time
 
 W = 400
 H = 300
