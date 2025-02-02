@@ -1,4 +1,5 @@
-# Funny-Bubbles ВИДЕО К ПРОЕКТУ: https://disk.yandex.ru/i/3_r0KtrMrtDopA
+# Funny-Bubbles
+## https://disk.yandex.ru/i/3_r0KtrMrtDopA
 ## Игру на "Funny Bubbles" на Pygame разработали ученицы 2 года обучения Яндекс Лицея Семидьянова Ксения и Федченко Мария.
 1. Название "Funny-Bubbles"
 2. Состав участников: Федченко Мария. Ник: Mariia-fed; Ксения Семидьянова. Ник: blikses
