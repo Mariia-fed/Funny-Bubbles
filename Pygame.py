@@ -8,16 +8,16 @@ STARTING_LIVES = 3
 STARTING_LEVEL = 1
 SCORE_NEW_LIFE = 5000
 
-BUBBLE_SPEED = 4  # На сколько пикселей за сек примеры двигаются
-BUBBLE_FREQUENCY = 10  # Сколько раз за 5 сек появляется пример
+BUBBLE_SPEED = 30  # Увеличиваем скорость шариков
+BUBBLE_FREQUENCY = 40  # Сколько раз за 5 сек появляется пример
 BUBBLE_RADIUS = 50
 
 FPS = 24
 
-BG_COLOR = (255, 219, 139)
+BG_COLOR = (142, 235, 232)
 BUBBLE_COLOR1 = (255, 192, 203)
 WHITE = (255, 255, 255)
-ORANGE = (255, 165, 0)
+ORANGE = (102, 195, 192)
 BLACK = (0, 0, 0)
 
 HEART_SIZE = 32
@@ -129,19 +129,24 @@ class Game:
 
     def check_life_loss(self):
         for problem in self.problems:
-            if problem.y < BUBBLE_RADIUS:
+            if not TARGET_RECT.collidepoint(problem.x, problem.y - 40):
                 self.lives -= 1
+                problem.active = False
                 self.start_new_life()
+                break
         if self.lives == 0:
             self.game_over_screen = True
 
     def draw(self):
-        self.screen.fill(BG_COLOR)
+        self.screen.fill(ORANGE)
         if self.start_screen:
             self.draw_start_screen()
         elif self.game_over_screen:
             self.draw_game_over_screen()
         else:
+            background = pygame.image.load("puziriki.jpg")
+            background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+            self.screen.blit(background, (0, 0))
             for problem in self.problems:
                 if problem.active:
                     problem.draw(self.screen, self.font)
@@ -152,6 +157,9 @@ class Game:
         pygame.display.flip()
 
     def draw_start_screen(self):
+        bubble_image = pygame.image.load('puzirik.png')
+        bubble_image = pygame.transform.smoothscale(bubble_image, (600, 600))
+        self.screen.blit(bubble_image, (215, 74))
         start_text_1 = self.big_font.render(f'FUNNY BUBBLES', True, WHITE)
         start_text_2 = self.font.render(f'Press ENTER to begin', True, WHITE)
         start_text_rect_1 = start_text_1.get_rect()
@@ -176,7 +184,7 @@ class Game:
         self.screen.blit(game_over_text_2, game_over_rect_2)
 
     def print_score(self):
-        score_text = self.font.render(f'SCORE: {self.score}', True, WHITE)
+        score_text = self.font.render(f'SCORE: {self.score}', True, ORANGE)
         score_text_rect = score_text.get_rect()
         score_text_rect.x, score_text_rect.y = 20, 20
         self.screen.blit(score_text, score_text_rect)
@@ -199,12 +207,16 @@ class Problem:
         self.a = random.randint(1, 9)
         self.b = random.randint(1, 9)
         self.solution = self.a + self.b
-        self.x = random.randint(BUBBLE_RADIUS, WIDTH - BUBBLE_RADIUS)
-        self.y = HEIGHT - BUBBLE_RADIUS
+        # WIDTH = 1024
+        # HEIGHT = 768
+        self.x = random.randint(102 + BUBBLE_RADIUS, 921 - BUBBLE_RADIUS)
+        self.y = 690 - BUBBLE_RADIUS
         self.active = True
 
     def draw(self, screen, font):
-        pygame.draw.circle(screen, BUBBLE_COLOR1, (self.x, self.y), BUBBLE_RADIUS)
+        bubble_image = pygame.image.load('puzirik.png')
+        bubble_image = pygame.transform.smoothscale(bubble_image, (100, 100))
+        screen.blit(bubble_image, (self.x - 50, self.y - 50))
         problem_text = font.render(f'{self.a} + {self.b}', True, BLACK)
         problem_text_rect = problem_text.get_rect()
         problem_text_rect.centerx = self.x
@@ -213,8 +225,6 @@ class Problem:
 
     def move(self):
         self.y -= BUBBLE_SPEED
-        if self.y < BUBBLE_RADIUS:
-            self.active = False
 
 
 class Prompt:
@@ -222,6 +232,7 @@ class Prompt:
         self.value = ""
 
     def draw(self, screen, font):
+
         pygame.draw.rect(screen, ORANGE, (WIDTH // 2 - PROMPT_WIDTH // 2, HEIGHT - PROMPT_HEIGHT * 1.1,
                                           PROMPT_WIDTH, PROMPT_HEIGHT))
         prompt_text = font.render(self.value, True, BLACK)
