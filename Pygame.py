@@ -129,7 +129,7 @@ class Game:
 
     def check_life_loss(self):
         for problem in self.problems:
-            if not TARGET_RECT.collidepoint(problem.x, problem.y - 40):  # Граница
+            if not TARGET_RECT.collidepoint(problem.x, problem.y - 40):  # Шарик удаляется после сталкновения
                 self.lives -= 1
                 problem.active = False
                 self.start_new_life()
