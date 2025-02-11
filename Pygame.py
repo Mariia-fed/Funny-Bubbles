@@ -8,8 +8,8 @@ STARTING_LIVES = 3
 STARTING_LEVEL = 1
 SCORE_NEW_LIFE = 5000
 
-BUBBLE_SPEED = 4  # На сколько пикселей за сек примеры двигаются
-BUBBLE_FREQUENCY = 10  # Сколько раз за 5 сек появляется пример
+BUBBLE_SPEED = 30  # Увеличиваем скорость шариков
+BUBBLE_FREQUENCY = 40  # Сколько раз за 5 сек появляется пример
 BUBBLE_RADIUS = 50
 
 FPS = 24
@@ -29,7 +29,6 @@ PROMPT_HEIGHT = 50
 MAX_PROMPT_LENGTH = 10
 
 TARGET_RECT = pygame.Rect(int(WIDTH * 0.1), int(HEIGHT * 0.1), WIDTH * 0.8, HEIGHT * 0.8)
-print(TARGET_RECT)
 
 
 class Game:
@@ -130,9 +129,11 @@ class Game:
 
     def check_life_loss(self):
         for problem in self.problems:
-            if problem.y < BUBBLE_RADIUS:
+            if not TARGET_RECT.collidepoint(problem.x, problem.y - 40):
                 self.lives -= 1
+                problem.active = False
                 self.start_new_life()
+                break
         if self.lives == 0:
             self.game_over_screen = True
 
@@ -224,9 +225,6 @@ class Problem:
 
     def move(self):
         self.y -= BUBBLE_SPEED
-        ymax = 76 + BUBBLE_RADIUS
-        if self.y < ymax:
-            self.active = False
 
 
 class Prompt:
