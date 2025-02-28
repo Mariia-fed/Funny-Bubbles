@@ -1,5 +1,20 @@
 import random
 import pygame
+import sqlite3
+
+# Создаем подключение к базе данных (файл my_database.db будет создан)
+connection = sqlite3.connect('my_database.db')
+cursor = connection.cursor()
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Users (
+id INTEGER PRIMARY KEY,
+username TEXT NOT NULL,
+email TEXT NOT NULL,
+age INTEGER
+)
+''')
+connection.commit()
+connection.close()
 
 WIDTH = 1024
 HEIGHT = 768
@@ -41,6 +56,10 @@ class Game:
         self.running = True
         self.clock = pygame.time.Clock()
         self.start_new_game()
+        self.registration_screen = False
+        self.registration_input = {"username": "", "email": "", "age": ""}
+        self.current_input_field = "username"
+        self.registration_message = ""
 
     def set_up_canvas(self):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -69,7 +88,7 @@ class Game:
     def launch(self):
         while self.running:
             self.handle_events()
-            if not self.start_screen and not self.game_over_screen:
+            if not self.start_screen and not self.game_over_screen and not self.registration_screen:
                 self.change_game_state()
             self.draw()
             self.clock.tick(FPS)
@@ -86,10 +105,23 @@ class Game:
         if self.start_screen:
             if key == pygame.K_RETURN:
                 self.start_screen = False
+            elif key == pygame.K_LSHIFT or key == pygame.K_RSHIFT:
+                self.registration_screen = True
         elif self.game_over_screen:
             if key == pygame.K_RETURN:
                 self.game_over_screen = False
                 self.start_new_game()
+        elif self.registration_screen:
+            if key == pygame.K_RETURN:
+                self.save_registration_data()
+            elif key == pygame.K_TAB:
+                self.switch_input_field()
+            elif key == pygame.K_BACKSPACE:
+                self.registration_input[self.current_input_field] = self.registration_input[self.current_input_field][:-1]
+            else:
+                char = pygame.key.name(key)
+                if len(char) == 1:
+                    self.registration_input[self.current_input_field] += char
         else:
             if key == pygame.K_ESCAPE:
                 self.running = False
@@ -100,6 +132,34 @@ class Game:
             elif key == pygame.K_RETURN:
                 self.solution = int(self.prompt.value)
                 self.prompt.value = ""
+
+    def switch_input_field(self):
+        if self.current_input_field == "username":
+            self.current_input_field = "email"
+        elif self.current_input_field == "email":
+            self.current_input_field = "age"
+        else:
+            self.current_input_field = "username"
+
+    def save_registration_data(self):
+        connection = sqlite3.connect('my_database.db')
+        cursor = connection.cursor()
+
+        # Проверяем, существует ли пользователь с такими же данными
+        cursor.execute('SELECT * FROM Users WHERE username = ? OR email = ?',
+                       (self.registration_input["username"], self.registration_input["email"]))
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            self.registration_message = "Пользователь уже существует!"
+        else:
+            cursor.execute('INSERT INTO Users (username, email, age) VALUES (?, ?, ?)',
+                           (self.registration_input["username"], self.registration_input["email"], int(self.registration_input["age"])))
+            connection.commit()
+            self.registration_message = "Регистрация завершена!"
+            self.registration_input = {"username": "", "email": "", "age": ""}
+
+        connection.close()
 
     def change_game_state(self):
         self.check_spawn()
@@ -129,7 +189,7 @@ class Game:
 
     def check_life_loss(self):
         for problem in self.problems:
-            if not TARGET_RECT.collidepoint(problem.x, problem.y - 40):  # Шарик удаляется после сталкновения
+            if not TARGET_RECT.collidepoint(problem.x, problem.y - 40):
                 self.lives -= 1
                 problem.active = False
                 self.start_new_life()
@@ -143,6 +203,8 @@ class Game:
             self.draw_start_screen()
         elif self.game_over_screen:
             self.draw_game_over_screen()
+        elif self.registration_screen:
+            self.draw_registration_screen()
         else:
             background = pygame.image.load("puziriki.jpg")
             background = pygame.transform.scale(background, (WIDTH, HEIGHT))
@@ -162,14 +224,52 @@ class Game:
         self.screen.blit(bubble_image, (215, 74))
         start_text_1 = self.big_font.render(f'FUNNY BUBBLES', True, WHITE)
         start_text_2 = self.font.render(f'Press ENTER to begin', True, WHITE)
+        start_text_3 = self.font.render(f'Press SHIFT and then ENTER to become a user', True, WHITE)
         start_text_rect_1 = start_text_1.get_rect()
         start_text_rect_2 = start_text_2.get_rect()
+        start_text_rect_3 = start_text_3.get_rect()
         start_text_rect_1.centerx = WIDTH // 2
         start_text_rect_1.y = HEIGHT // 2 - 50
         start_text_rect_2.centerx = WIDTH // 2
         start_text_rect_2.y = HEIGHT // 2 + 50
+        start_text_rect_3.centerx = WIDTH // 2
+        start_text_rect_3.y = HEIGHT // 2 + 120
         self.screen.blit(start_text_1, start_text_rect_1)
         self.screen.blit(start_text_2, start_text_rect_2)
+        self.screen.blit(start_text_3, start_text_rect_3)
+
+    def draw_registration_screen(self):
+        self.screen.fill(ORANGE)
+        registration_text_1 = self.big_font.render(f'REGISTRATION', True, WHITE)
+        registration_text_2 = self.font.render(f'Username: {self.registration_input["username"]}', True, WHITE)
+        registration_text_3 = self.font.render(f'Email: {self.registration_input["email"]}', True, WHITE)
+        registration_text_4 = self.font.render(f'Age: {self.registration_input["age"]}', True, WHITE)
+        registration_text_5 = self.font.render(f'Press TAB to switch field, ENTER to save', True, WHITE)
+        registration_text_6 = self.font.render(self.registration_message, True, WHITE)
+        registration_text_rect_1 = registration_text_1.get_rect()
+        registration_text_rect_2 = registration_text_2.get_rect()
+        registration_text_rect_3 = registration_text_3.get_rect()
+        registration_text_rect_4 = registration_text_4.get_rect()
+        registration_text_rect_5 = registration_text_5.get_rect()
+        registration_text_rect_6 = registration_text_6.get_rect()
+        registration_text_rect_1.centerx = WIDTH // 2
+        registration_text_rect_1.y = HEIGHT // 2 - 150
+        registration_text_rect_2.centerx = WIDTH // 2
+        registration_text_rect_2.y = HEIGHT // 2 - 50
+        registration_text_rect_3.centerx = WIDTH // 2
+        registration_text_rect_3.y = HEIGHT // 2
+        registration_text_rect_4.centerx = WIDTH // 2
+        registration_text_rect_4.y = HEIGHT // 2 + 50
+        registration_text_rect_5.centerx = WIDTH // 2
+        registration_text_rect_5.y = HEIGHT // 2 + 150
+        registration_text_rect_6.centerx = WIDTH // 2
+        registration_text_rect_6.y = HEIGHT // 2 + 200
+        self.screen.blit(registration_text_1, registration_text_rect_1)
+        self.screen.blit(registration_text_2, registration_text_rect_2)
+        self.screen.blit(registration_text_3, registration_text_rect_3)
+        self.screen.blit(registration_text_4, registration_text_rect_4)
+        self.screen.blit(registration_text_5, registration_text_rect_5)
+        self.screen.blit(registration_text_6, registration_text_rect_6)
 
     def draw_game_over_screen(self):
         game_over_text_1 = self.big_font.render(f'GAME OVER', True, WHITE)
@@ -207,8 +307,6 @@ class Problem:
         self.a = random.randint(1, 9)
         self.b = random.randint(1, 9)
         self.solution = self.a + self.b
-        # WIDTH = 1024
-        # HEIGHT = 768
         self.x = random.randint(102 + BUBBLE_RADIUS, 921 - BUBBLE_RADIUS)
         self.y = 690 - BUBBLE_RADIUS
         self.active = True
@@ -232,7 +330,6 @@ class Prompt:
         self.value = ""
 
     def draw(self, screen, font):
-
         pygame.draw.rect(screen, ORANGE, (WIDTH // 2 - PROMPT_WIDTH // 2, HEIGHT - PROMPT_HEIGHT * 1.1,
                                           PROMPT_WIDTH, PROMPT_HEIGHT))
         prompt_text = font.render(self.value, True, BLACK)
