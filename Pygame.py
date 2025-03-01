@@ -1,7 +1,19 @@
 import pygame
-
+import sqlite3
 from Problemclass import Problem
 from Promtclass import Prompt
+
+# Подключение к базе данных
+connection = sqlite3.connect('funny_bubbles.db')
+cursor = connection.cursor()
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Scores (
+id INTEGER PRIMARY KEY,
+score INTEGER
+)
+''')
+connection.commit()
+connection.close()
 
 WIDTH = 1024
 HEIGHT = 768
@@ -151,6 +163,23 @@ class Game:
                 break
         if self.lives == 0:
             self.game_over_screen = True
+            self.save_score_to_db()
+            self.high_score = self.get_high_score()
+
+    def save_score_to_db(self):
+        connection = sqlite3.connect('funny_bubbles.db')
+        cursor = connection.cursor()
+        cursor.execute('INSERT INTO Scores (score) VALUES (?)', (self.score,))
+        connection.commit()
+        connection.close()
+
+    def get_high_score(self):
+        connection = sqlite3.connect('funny_bubbles.db')
+        cursor = connection.cursor()
+        cursor.execute('SELECT MAX(score) FROM Scores')
+        high_score = cursor.fetchone()[0]
+        connection.close()
+        return high_score
 
     def draw(self):
         self.screen.fill(ORANGE)
@@ -207,14 +236,19 @@ class Game:
     def draw_game_over_screen(self):
         game_over_text_1 = self.big_font.render(f'GAME OVER', True, WHITE)
         game_over_text_2 = self.font.render(f'FINAL SCORE: {self.score}', True, WHITE)
+        game_over_text_3 = self.font.render(f'YOUR RECORD: {self.high_score}', True, WHITE)
         game_over_rect_1 = game_over_text_1.get_rect()
         game_over_rect_2 = game_over_text_2.get_rect()
+        game_over_rect_3 = game_over_text_3.get_rect()
         game_over_rect_1.centerx = WIDTH // 2
         game_over_rect_1.y = HEIGHT // 2 - 50
         game_over_rect_2.centerx = WIDTH // 2
         game_over_rect_2.y = HEIGHT // 2 + 50
+        game_over_rect_3.centerx = WIDTH // 2
+        game_over_rect_3.y = HEIGHT // 2 + 100
         self.screen.blit(game_over_text_1, game_over_rect_1)
         self.screen.blit(game_over_text_2, game_over_rect_2)
+        self.screen.blit(game_over_text_3, game_over_rect_3)
 
     def print_score(self):
         score_text = self.font.render(f'SCORE: {self.score}', True, ORANGE)
