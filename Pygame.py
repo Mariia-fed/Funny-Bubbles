@@ -35,7 +35,7 @@ HEART_Y = 20
 
 TARGET_RECT = pygame.Rect(int(WIDTH * 0.1), int(HEIGHT * 0.1), WIDTH * 0.8, HEIGHT * 0.8)
 
-images = [pygame.image.load(f"st{i}.png") for i in range(2, 6)]
+images = [pygame.image.load(f"animation/st{i}.png") for i in range(2, 6)]
 images = [pygame.transform.smoothscale(img, (800, 800)) for img in images]
 scale_factor = 1.0
 scale_speed = 0.0051
@@ -73,7 +73,7 @@ class Game:
     def set_up_canvas(self):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Funny Bubbles')
-        icon = pygame.image.load('bubbles.jpg')
+        icon = pygame.image.load('img/bubbles.jpg')
         pygame.display.set_icon(icon)
 
     def start_new_game(self):
@@ -188,7 +188,7 @@ class Game:
         elif self.game_over_screen:
             self.draw_game_over_screen()
         else:
-            background = pygame.image.load('puziriki.jpg')
+            background = pygame.image.load('img/puziriki.jpg')
             background = pygame.transform.scale(background, (WIDTH, HEIGHT))
             self.screen.blit(background, (0, 0))
             for problem in self.problems:
@@ -212,7 +212,6 @@ class Game:
 
         image_rect = scaled_image.get_rect(center=(WIDTH // 2, HEIGHT // 2))
         self.screen.blit(scaled_image, image_rect)
-
         start_text_1 = self.big_font.render('FUNNY BUBBLES', True, WHITE)
         start_text_2 = self.font.render('Press ENTER to begin', True, WHITE)
         start_text_rect_1 = start_text_1.get_rect()
@@ -257,7 +256,7 @@ class Game:
         self.screen.blit(score_text, score_text_rect)
 
     def print_lives(self):
-        heart_image = pygame.image.load('Pics.png')
+        heart_image = pygame.image.load('img/Pics.png')
         heart_sprite = heart_image.convert_alpha()
         heart_sprite = pygame.transform.smoothscale(heart_sprite, (HEART_SIZE, HEART_SIZE))
         heart_x = STARTING_HEART_X
